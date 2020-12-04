@@ -20,16 +20,6 @@
                             Login
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ url('/register') }}">
-                            Register
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url('/password/reset') }}">
-                            Password Reset
-                        </a>
-                    </li>
                 </ul>
             </div>
         </div>
