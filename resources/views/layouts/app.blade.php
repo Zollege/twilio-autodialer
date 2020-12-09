@@ -45,7 +45,6 @@
         </div>
     @endif
 </div>
-
 <!-- Scripts -->
 <script src="{{ mix('/js/app.js') }}"></script>
 @include('partials._notifications')
