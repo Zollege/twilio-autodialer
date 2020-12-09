@@ -39,9 +39,9 @@
                                     <div class="form-group{{ $errors->has('type') ? ' has-error' : '' }}">
                                         {!! Form::label('Call Type','Call Type') !!}
                                         @if(\Auth::user()->audioMessages()->count())
-                                        {!! Form::select('type', ['voice' => 'Voice', 'text' => 'Text Message', 'audio' => 'Audio File'], 'S', ['v-model' => 'selected', 'class' => 'selectpicker form-control', 'data-style' => 'btn-default btn-block']) !!}
+                                        {!! Form::select('type', ['text' => 'Text Message', 'voice' => 'Voice', 'audio' => 'Audio File'], '', ['class' => 'selectpicker form-control', 'data-style' => 'btn-default btn-block']) !!}
                                         @else
-                                        {!! Form::select('type', ['voice' => 'Voice', 'text' => 'Text Message'], 'S', ['v-model' => 'selected', 'class' => 'selectpicker form-control', 'data-style' => 'btn-default btn-block']) !!}
+                                        {!! Form::select('type', ['text' => 'Text Message', 'voice' => 'Voice'], 'S', ['class' => 'selectpicker form-control', 'data-style' => 'btn-default btn-block']) !!}
                                         @endif
                                         @if ($errors->has('type'))
                                             <span class="help-block">

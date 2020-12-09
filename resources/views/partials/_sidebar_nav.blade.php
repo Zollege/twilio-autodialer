@@ -31,9 +31,9 @@
             </a>
             <div id="autoDialerMenu" class="{{ in_array(\Route::current()->getName(), ['autodialer.index', 'autodialer.bulk.index', 'autodialer.bulk.show', 'autodialer.bulk.logfile', 'cdrs.index']) ? "collapse in" : "collapse" }}">
                 <ul class="nav">
-                    <li><a href="/autodialer">Single Call</a></li>
-                    <li><a href="/autodialer/bulk">Bulk Calls</a></li>
-                    <li><a href="/autodialer/cdrs">Call Detail Records</a></li>
+                    <li><a href="/autodialer">Single SMS</a></li>
+                    <li><a href="/autodialer/bulk">Bulk SMS</a></li>
+                    <li><a href="/autodialer/cdrs">SMS Detail Records</a></li>
                 </ul>
             </div>
         </li>
