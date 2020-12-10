@@ -34,7 +34,29 @@ class AutoDialerController extends Controller
         return view('autodialer.index', compact('verifiedPhoneNumbers', 'audioMessages'));
     }
 
+     public function find(Request $request)
+     {
+        \Log::info('verifiedPhoneNumber find request: ' . $request);
+        $term = trim($request->q);
+     
+        if (empty($term)) {
+          return \Response::json([]);
+        }
+     
+        $vpns = VerifiedPhoneNumber::search($term)->limit(5)->get();
+        \Log::info('vpns: ' . $vpns);
+     
+        $formatted_vpns = [];
 
+        $count = 1; 
+
+        foreach ($vpns as $vpn) {
+          $formatted_vpns[] = ['id' => $count, 'text' => $vpn->friendly_name];
+          $count++;
+        }
+
+        return \Response::json($formatted_tags);
+     }
     /**
      *  Place a Twilio Call
      *
