@@ -1,9 +1,10 @@
 $(document).ready(function() {
-  $('#verified_numbers_list').select2({
+  let url = window.location.pathname === '/autodialer/bulk' ? 'callerid' : 'autodialer/callerid'; 
+
+  $('.verified_phone_numbers').select2({
     placeholder: "Choose Verified Phone Number...",
-    minimumInputLength: 1,
     ajax: {
-        url: 'autodialer/vpn',
+        url: url,
         dataType: 'json',
         data: function (params) {
             return {

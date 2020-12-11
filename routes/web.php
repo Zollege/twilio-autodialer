@@ -46,7 +46,7 @@ Route::group(['middleware' => ['auth', 'impersonate']], function() {
             Route::post('bulk/{id}/logfile', ['as'   => 'autodialer.bulk.logfile', 'uses' => 'AutoDialerController@bulkLogfile']);
             Route::delete('bulk/{id}', ['as'   => 'autodialer.bulk.destroy', 'uses' => 'AutoDialerController@bulkDestroy']);
             Route::resource('cdrs', 'CdrsController');
-            Route::get('vpn', ['as' => 'autodialer.index', 'uses' => 'AutoDialerController@find']);
+            Route::get('callerid', ['as'   => 'autodialer.callerid', 'uses' => 'AutoDialerController@callerid']);
         });
 
         // Audio Messages Routes

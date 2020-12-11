@@ -18,14 +18,10 @@
                         <div class="content">
                             {!! Form::open( ['route' => 'autodialer.store', 'id' => 'app'] ) !!}
                             <div class="form-group{{ $errors->has('caller_id') ? ' has-error' : '' }}">
-                              <div class="form-group">
-                                <label for="verified_numbers_list">Verified Phone Numbers:</label>
-                                <select id="verified_numbers_list"
-                                  name="verified_numbers_list[]" class="form-control" multiple></select>
-                              </div>
-                                {!! Form::label('Caller ID','Your Caller ID') !!}
-                                {!! Form::select('caller_id', $verifiedPhoneNumbers, null, ['class' => 'selectpicker form-control select2-single', 'data-style' => 'btn-default btn-block']) !!}
-                                    <script>var numbers = {!!json_encode($verifiedPhoneNumbers->toArray())!!};</script>
+                                <div class="form-group">
+                                  <label for="caller_id">Verified Phone Numbers:</label>
+                                  <select id="caller_id" name="caller_id" data-style="btn-default btn-block" class="verified_phone_numbers form-control"></select>
+                                </div>
                                 @if ($errors->has('caller_id'))
                                     <span class="help-block">
                                         <strong>{{ $errors->first('caller_id') }}</strong>
