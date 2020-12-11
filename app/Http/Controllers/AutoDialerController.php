@@ -39,11 +39,10 @@ class AutoDialerController extends Controller
         $term = trim($request->q);
      
         if (empty($term)) {
-          return \Response::json([]);
-        }
-     
-        $vpns = VerifiedPhoneNumber::search($term)->limit(5)->get();
-     
+          $vpns = VerifiedPhoneNumber::all();
+        } else {
+          $vpns = VerifiedPhoneNumber::search($term)->limit(5)->get();
+        } 
         $formatted_vpns = [];
 
         foreach ($vpns as $vpn) {
