@@ -34,7 +34,22 @@ class AutoDialerController extends Controller
         return view('autodialer.index', compact('verifiedPhoneNumbers', 'audioMessages'));
     }
 
+     public function callerid(Request $request)
+     {
+        $term = trim($request->q);
+     
+        if (empty($term)) {
+          $vpns = VerifiedPhoneNumber::all();
+        } else {
+          $vpns = VerifiedPhoneNumber::search($term)->limit(5)->get();
+        } 
+        $formatted_vpns = [];
 
+        foreach ($vpns as $vpn) {
+          $formatted_vpns[] = ['id' => $vpn->id, 'text' => $vpn->friendly_name];
+        }
+        return \Response::json($formatted_vpns);
+     }
     /**
      *  Place a Twilio Call
      *
@@ -51,6 +66,8 @@ class AutoDialerController extends Controller
             'caller_id' => 'required',
         ]);
 
+        \Log::info('placeCall request: '. $request);
+
         $number = substr($request->number, -10);
         // If this request is to play an audio file, generate the URL for the file location.
         // Otherwise, just use the text entered in the form.
@@ -62,6 +79,8 @@ class AutoDialerController extends Controller
         }
         $type = $request->type;
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
+        //$callerId = $request->caller_id;
+        \Log::info('callerId: '. $callerId); 
 
         $call = (new PlaceTwilioCallService(
             [$number,$say,$type, $callerId],
@@ -110,6 +129,7 @@ class AutoDialerController extends Controller
      */
     public function bulkStore(Request $request)
     {
+        \Log::info('bulkStore request: '. $request);
         // Validate the form input
         $this->validate($request, [
             'file' => 'required',
