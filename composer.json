@@ -9,6 +9,7 @@
   "type": "project",
   "require": {
     "php": "~7.4.12",
+    "hubspot/hubspot-php": "^3.0",
     "keboola/csv": "^1.1",
     "laravel/framework": "5.5.*",
     "laravel/socialite": "^3.0",
@@ -17,6 +18,7 @@
     "pda/pheanstalk": "^3.1",
     "predis/predis": "^1.1",
     "pusher/pusher-php-server": "^2.6",
+    "rossjcooper/laravel-hubspot": "^4.0",
     "sofa/eloquence": "^6.0",
     "thomaswelton/laravel-gravatar": "^1.1",
     "twilio/sdk": "5.5",

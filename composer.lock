@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8fc6f9261b1c439196550305aea257a",
+    "content-hash": "d3fb43642bd16ddb64a1e9c797d25d9c",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -537,6 +537,61 @@
                 "source": "https://github.com/guzzle/psr7/tree/1.7.0"
             },
             "time": "2020-09-30T07:37:11+00:00"
+        },
+        {
+            "name": "hubspot/hubspot-php",
+            "version": "3.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HubSpot/hubspot-php.git",
+                "reference": "6936cbcea491fce09bcc379d99afde251f270957"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HubSpot/hubspot-php/zipball/6936cbcea491fce09bcc379d99afde251f270957",
+                "reference": "6936cbcea491fce09bcc379d99afde251f270957",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "guzzlehttp/guzzle": "~6.0 | ^7.0",
+                "php": ">=7.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.13",
+                "phpspec/phpspec": "^3.4",
+                "phpunit/phpunit": "~5.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SevenShores\\Hubspot\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Ryan Winchester",
+                    "email": "fungku@gmail.com",
+                    "homepage": "http://ryanwinchester.ca"
+                }
+            ],
+            "description": "HubSpot PHP API client",
+            "keywords": [
+                "api",
+                "hubspot"
+            ],
+            "support": {
+                "issues": "https://github.com/HubSpot/hubspot-php/issues",
+                "source": "https://github.com/HubSpot/hubspot-php/tree/v3.0.1"
+            },
+            "time": "2020-10-23T10:40:40+00:00"
         },
         {
             "name": "jakub-onderka/php-console-color",
@@ -1320,16 +1375,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "1.25.5",
+            "version": "1.26.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "1817faadd1846cd08be9a49e905dc68823bc38c0"
+                "reference": "2209ddd84e7ef1256b7af205d0717fb62cfc9c33"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1817faadd1846cd08be9a49e905dc68823bc38c0",
-                "reference": "1817faadd1846cd08be9a49e905dc68823bc38c0",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/2209ddd84e7ef1256b7af205d0717fb62cfc9c33",
+                "reference": "2209ddd84e7ef1256b7af205d0717fb62cfc9c33",
                 "shasum": ""
             },
             "require": {
@@ -1345,7 +1400,7 @@
                 "graylog2/gelf-php": "~1.0",
                 "php-amqplib/php-amqplib": "~2.4",
                 "php-console/php-console": "^3.1.3",
-                "php-parallel-lint/php-parallel-lint": "^1.0",
+                "phpstan/phpstan": "^0.12.59",
                 "phpunit/phpunit": "~4.5",
                 "ruflin/elastica": ">=0.90 <3.0",
                 "sentry/sentry": "^0.13",
@@ -1365,11 +1420,6 @@
                 "sentry/sentry": "Allow sending log messages to a Sentry server"
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "Monolog\\": "src/Monolog"
@@ -1395,7 +1445,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/1.25.5"
+                "source": "https://github.com/Seldaek/monolog/tree/1.26.0"
             },
             "funding": [
                 {
@@ -1407,7 +1457,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2020-07-23T08:35:51+00:00"
+            "time": "2020-12-14T12:56:38+00:00"
         },
         {
             "name": "mtdowling/cron-expression",
@@ -2231,6 +2281,68 @@
                 "wiki": "https://github.com/ramsey/uuid/wiki"
             },
             "time": "2020-02-21T04:36:14+00:00"
+        },
+        {
+            "name": "rossjcooper/laravel-hubspot",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rossjcooper/laravel-hubspot.git",
+                "reference": "73dbd0468add4e0f4829e6e85409c5f4aaf770a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rossjcooper/laravel-hubspot/zipball/73dbd0468add4e0f4829e6e85409c5f4aaf770a2",
+                "reference": "73dbd0468add4e0f4829e6e85409c5f4aaf770a2",
+                "shasum": ""
+            },
+            "require": {
+                "hubspot/hubspot-php": "^3.0",
+                "illuminate/support": ">=5.3"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.15",
+                "orchestra/testbench": ">=3.4"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Rossjcooper\\LaravelHubSpot\\HubSpotServiceProvider"
+                    ],
+                    "aliases": {
+                        "HubSpot": "Rossjcooper\\LaravelHubSpot\\Facades\\HubSpot"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Rossjcooper\\LaravelHubSpot\\": "src/",
+                    "Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ross Cooper",
+                    "email": "therossjcooper@gmail.com"
+                }
+            ],
+            "description": "Adds a Laravel specific wrapper for the Hubspot client package",
+            "keywords": [
+                "api",
+                "hubspot",
+                "laravel",
+                "service"
+            ],
+            "support": {
+                "issues": "https://github.com/rossjcooper/laravel-hubspot/issues",
+                "source": "https://github.com/rossjcooper/laravel-hubspot/tree/4.0.0"
+            },
+            "time": "2020-10-15T08:40:27+00:00"
         },
         {
             "name": "sofa/eloquence",
@@ -4812,16 +4924,16 @@
         },
         {
             "name": "fzaninotto/faker",
-            "version": "v1.9.1",
+            "version": "v1.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fzaninotto/Faker.git",
-                "reference": "fc10d778e4b84d5bd315dad194661e091d307c6f"
+                "reference": "848d8125239d7dbf8ab25cb7f054f1a630e68c2e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fzaninotto/Faker/zipball/fc10d778e4b84d5bd315dad194661e091d307c6f",
-                "reference": "fc10d778e4b84d5bd315dad194661e091d307c6f",
+                "url": "https://api.github.com/repos/fzaninotto/Faker/zipball/848d8125239d7dbf8ab25cb7f054f1a630e68c2e",
+                "reference": "848d8125239d7dbf8ab25cb7f054f1a630e68c2e",
                 "shasum": ""
             },
             "require": {
@@ -4860,10 +4972,10 @@
             ],
             "support": {
                 "issues": "https://github.com/fzaninotto/Faker/issues",
-                "source": "https://github.com/fzaninotto/Faker/tree/v1.9.1"
+                "source": "https://github.com/fzaninotto/Faker/tree/v1.9.2"
             },
             "abandoned": true,
-            "time": "2019-12-12T13:22:17+00:00"
+            "time": "2020-12-11T09:56:16+00:00"
         },
         {
             "name": "hamcrest/hamcrest-php",
