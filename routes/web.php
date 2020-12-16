@@ -49,8 +49,43 @@ Route::group(['middleware' => ['auth', 'impersonate']], function() {
             Route::get('callerid', ['as'   => 'autodialer.callerid', 'uses' => 'AutoDialerController@callerid']);
         });
         
-        Route::group(['prefix' => 'hubspot'], function() {
-            Route::get('contact', ['as'      => 'hubspot.contact', 'uses' => 'HubspotController@contact']);
+        //Route::group(['prefix' => 'hubspot'], function() {
+            //Route::get('contact', ['as'      => 'hubspot.contact', 'uses' => 'HubspotController@contact']);
+        //});
+        Route::get('hubspot/{phonenumber}', function (Rossjcooper\LaravelHubSpot\HubSpot $hubspot, $phonenumber) {
+            $contacts = $hubspot->contacts()->search($phonenumber);
+           
+            if (!count($contacts->data->contacts)){
+              \Log::error("Contact phone number: $phonenumber was not found in HubSpot");
+              return "not a valid contact";
+            }
+
+            $contact = $contacts->data->contacts[0]->properties;
+            $email = $contact->email->value;
+            $splitEmail = explode('@', $email);
+            $domain = $splitEmail[1];
+
+            if ($domain != 'call.com' && $domain != 'twl.com') {
+
+              $vid = $contacts->data->contacts[0]->vid; 
+              $engagement = [
+                'type' => 'NOTE',
+                'ownerId' => 1, 
+                'active' => true
+              ]; 
+              $metadata = [  
+                'body' => 'test'
+              ];
+              $associations = [
+                'contactIds' => [$vid]
+              ];
+              $engagements = $hubspot->engagements()->create($engagement, $associations, $metadata);
+              dd($engagements);
+              return json_encode($engagements);
+            } else {
+              \Log::error("Contact did not contain a valid email for phone number: $phonenumber");
+              return 'No valid email associated with phone number';
+            }
         });
 
         // Audio Messages Routes

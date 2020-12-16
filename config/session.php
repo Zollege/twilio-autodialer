@@ -135,7 +135,7 @@ return [
     |
     */
 
-    //'path' => '/',
+    'path' => '/',
     //'path' => '/;samesite=none',
 
     /*
