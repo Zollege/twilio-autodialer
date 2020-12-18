@@ -49,7 +49,7 @@ Route::group(['middleware' => ['auth', 'impersonate']], function() {
             Route::get('callerid', ['as'   => 'autodialer.callerid', 'uses' => 'AutoDialerController@callerid']);
         });
         
-        Route::get('hubspot/{phonenumber}', ['as'   => 'hubspot.createCallLogNote', 'uses' => 'HubspotController@createCallLogNote']);
+        Route::post('hubspot/{phonenumber}', ['as'   => 'hubspot.createNote', 'uses' => 'HubspotController@createNote']);
 
         // Audio Messages Routes
         Route::resource('audio-messages', 'AudioMessagesController');

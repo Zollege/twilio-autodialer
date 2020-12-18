@@ -15,6 +15,7 @@ use App\Jobs\PlaceTwilioCallJob;
 use App\Models\VerifiedPhoneNumber;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
+use App\Utils\HuspotUtils;
 
 class AutoDialerController extends Controller
 {
@@ -82,6 +83,7 @@ class AutoDialerController extends Controller
         //$callerId = $request->caller_id;
         \Log::info('callerId: '. $callerId); 
 
+
         $call = (new PlaceTwilioCallService(
             [$number,$say,$type, $callerId],
             \Auth::user()->id
@@ -89,6 +91,9 @@ class AutoDialerController extends Controller
 
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
+        } else {
+            $hubspotUtils = new \App\Utils\HubspotUtils();
+            $hubspotUtils->createNote([$number], $callerId, $type);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');
