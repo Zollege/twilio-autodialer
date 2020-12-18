@@ -8,63 +8,69 @@ class HubspotUtils
 {
     protected $hubspot;
 
-    public function __construct()
+    public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
-      \Log::info('hubspot constructor called');
-      $this->hubspot = new \Rossjcooper\LaravelHubSpot\HubSpot();
+      $this->hubspot = $hubspot;
     }
-
     
-    public function verifyOrCreateContacts($phonenumbers)
+    private function verifyOrCreateContacts($phonenumbers)
     { 
-      \Log::info('verifyOrCreateCotacts()');
-
-      // Given an array of phone numbers, check that they are all hubspot contacts.
-      // For any phone numbers which are not already Hubspot contacts, create them in 
-      // Hubspot. Return an array of vids for each contact that matches a phone
-      // number in the array. 
+      // Given an array of phone numbers, check that they are all valid hubspot contacts.
+      // Any phone numbers which are not registered, are saved to Hubspot as new contacts. 
       $vids = [];
-
       foreach ($phonenumbers as $number) {
         $contacts = $this->hubspot->contacts()->search($number);
         if (!count($contacts->data->contacts)){
-          return "Could not find a valid contact for: $number";
+          $properties = [
+            "properties" => [
+              "property" => "phone",
+              "value" => $number
+            ]
+          ];
+          $newContact = $this->createContact($properties);
+            array_push($vids, $newContact->data->vid);
         } else {
           foreach($contacts->data->contacts as $contact) {
             array_push($vids, $contact->vid);
           }
         }
       }
-      dd($vids);
       return $vids;
     }
 
-    private function createContactVid(String $phonenumber) 
+    public function createContact(Array $properties) 
     {
-      // Create a hubspot contact with a phonenumber 
-      \Log::info('createContactVid()');
+      return $this->hubspot->contacts()->create($properties);
     }
 
-    public function createNote(Array $phonenumbers, String $callerId, String $type)
+    public function createNote(Array $phonenumbers, String $callerId, String $type, String $message)
     {
-        \Log::info('createNote()');
-
         $vids = $this->verifyOrCreateContacts($phonenumbers);
         $body = $this->buildNoteBody($callerId, $type, $message);
 
-        $engagement = ['type' => 'NOTE','active' => true]; 
-        $associations = ['contactIds' => [$vids]];
-        $metadata = ['body' => $body];
-
+        $engagement = [
+          'type' => 'NOTE',
+          'ownerId' => 1,
+          'active' => true
+        ];
+        $metadata = [
+          'body' => $body 
+        ];
+        $associations = [
+          'contactIds' => $vids
+        ];
         $engagements = $this->hubspot->engagements()->create($engagement, $associations, $metadata);
-        return json_encode($engagements);
+        dd($engagements);
     }
 
     private function buildNoteBody($callerId, $type, $message) 
     {
       //This function returns a string which will be passed to the metadata key
-     
-      //$body = "Twilio sent an automated $type. \n"."Date: " . date('l jS \of F Y h:i:s A')."\n"."From: $callerId \n";
+    
+      return "Twilio sent an automated $type message. ".
+             "Date: ".date('l jS \of F Y h:i:s A').". ".
+             "From: $callerId. ".
+             "Message: ".$message;
     } 
 
 }

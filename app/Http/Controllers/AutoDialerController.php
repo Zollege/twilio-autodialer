@@ -16,9 +16,18 @@ use App\Models\VerifiedPhoneNumber;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
 use App\Utils\HuspotUtils;
+use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class AutoDialerController extends Controller
 {
+    protected $hubspot;
+
+    public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
+    {
+      \Log::info('hubspot constructor called');
+      $this->hubspot = $hubspot;
+    }
+
     /**
      *  Show the AutoDialer index page
      *
@@ -59,6 +68,8 @@ class AutoDialerController extends Controller
      */
     public function placeCall(Request $request)
     {
+        //dd($this->hubspot);
+
         // Validate the form input
         $this->validate($request, [
             'number' => 'required',
@@ -80,20 +91,18 @@ class AutoDialerController extends Controller
         }
         $type = $request->type;
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
-        //$callerId = $request->caller_id;
-        \Log::info('callerId: '. $callerId); 
 
-
-        $call = (new PlaceTwilioCallService(
-            [$number,$say,$type, $callerId],
-            \Auth::user()->id
-        ))->call();
+        $call = true;
+        //$call = (new PlaceTwilioCallService(
+            //[$number,$say,$type, $callerId],
+            //\Auth::user()->id
+        //))->call();
 
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
         } else {
-            $hubspotUtils = new \App\Utils\HubspotUtils();
-            $hubspotUtils->createNote([$number], $callerId, $type);
+            $hubspotUtils = new \App\Utils\HubspotUtils($this->hubspot);
+            $hubspotUtils->createNote([$number], $callerId, $type, $say);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');
