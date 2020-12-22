@@ -67,3 +67,4 @@ require('./fbSdk');
 require('./dropzone');
 require('./jquery-ujs');
 require('./searchable-select');
+require('./bulk-dialer');

@@ -65,8 +65,8 @@
                                 {!! Form::textarea('say', null, ['class' => 'form-control']) !!}
                                 @if ($errors->has('say'))
                                     <span class="help-block">
-                                                <strong>{{ $errors->first('say') }}</strong>
-                                            </span>
+                                        <strong>{{ $errors->first('say') }}</strong>
+                                    </span>
                                 @endif
                             </div>
                             {!! Form::submit('Submit', ['class' => 'btn btn-primary btn-fill form-control']) !!}

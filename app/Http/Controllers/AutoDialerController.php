@@ -143,22 +143,31 @@ class AutoDialerController extends Controller
      */
     public function bulkStore(Request $request)
     {
-        \Log::info('bulkStore request: '. $request);
         // Validate the form input
         $this->validate($request, [
-            'file' => 'required',
+            'contact_input' => 'required',
+            'text_contacts' => 'nullable|required_without:csv_contacts',
+            'csv_contacts' => 'nullable|required_without:text_contacts',
             'say' => 'required',
             'type' => 'required',
             'caller_id' => 'required',
         ]);
 
-        if (!$request->file('file')|| ($request->file('file')->getClientMimeType() != "text/csv" && $request->file('file')->getClientOriginalExtension() != "csv"))
-        {
-            return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
+        if ($request->contact_input == "text") {
+
+            dd($request->text_contacts);
+
+        } else {
+          dd($request->file('csv_contacts'));
+            
+             //|| ($request->file('file')->getClientMimeType() != "text/csv" && $request->file('file')->getClientOriginalExtension() != "csv")) {
+
+            //return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
         }
 
         // Store the file
         $fileName = Carbon::now()->timestamp . '.csv';
+        
         $request->file('file')->storeAs(
             'bulkfiles', $fileName , 'public'
         );

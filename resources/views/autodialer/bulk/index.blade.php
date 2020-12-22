@@ -70,15 +70,48 @@
                                             </span>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('file') ? ' has-error' : '' }}">
-                                        {!! Form::label('file','Bulk Update File') !!}
-                                        {!! Form::file('file', null, ['class' => 'form-control']) !!}
-                                        @if ($errors->has('file'))
+                                      
+                                    <div class="form-group{{ $errors->has('contact_input') ? ' has-error' : '' }}">
+                                        {{--{!! Form::select('contact_input', ['text' => 'Enter Contacts Manually','file' => 'Upload CSV of Contacts'], '', ['class' => 'selectpicker form-control recipient_format', 'data-style' => 'btn-default btn-block']) !!}--}}
+                                        <label for="contact_input">How would you like to enter contacts?</label>
+                                        <select
+                                          data-style="btn-default btn-block"
+                                          name="contact_input"
+                                          class="form-control selectpicker contact_input">
+                                              <option value="" disabled hidden selected>Please select a contact input method.</option>
+                                              <option value="text">Text Box</option>
+                                              <option value="file">Upload CSV</option>
+                                        </select>
+                                        @if ($errors->has('contact_input'))
                                             <span class="help-block">
-                                                <strong>{{ $errors->first('file') }}</strong>
+                                                <strong>{{ $errors->first('contact_input') }}</strong>
                                             </span>
                                         @endif
                                     </div>
+
+                                    <div id="text-contact-input"
+                                      class="form-group collapse {{ $errors->has('text_contacts') ? ' has-error' :'' }}"> 
+                                        {!! Form::label('Contact Phone Numbers','Contact Phone Numbers') !!}
+                                        {!! Form::textarea('text_contacts', null, ['class' => 'form-control']) !!}
+                                        @if ($errors->has('text_contacts'))
+                                            <span class="help-block">
+                                                <strong>{{ $errors->first('text_contacts') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div id="csv-contact-input"
+                                      class="form-group collapse {{
+                                      $errors->has('csv_contacts') ? ' has-error' : '' }}">
+                                        {!! Form::label('csv_contacts','Bulk Update File') !!}
+                                        {!! Form::file('csv_contacts', null, ['class' => 'form-control']) !!}
+                                        @if ($errors->has('csv_contacts'))
+                                            <span class="help-block">
+                                                <strong>{{ $errors->first('csv_contacts') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
                                     {!! Form::submit('Submit', ['class' => 'btn btn-primary btn-fill form-control']) !!}
                                     {!! Form::close() !!}
                                 </div>
