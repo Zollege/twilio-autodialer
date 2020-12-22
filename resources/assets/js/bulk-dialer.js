@@ -5,10 +5,10 @@ $(document).ready(function() {
 
   contactInputSelect.change(function(){
     if ($(this).val() == "text"){
-        contactTextBox.toggleClass('collapse');
+        contactTextBox.removeClass('collapse');
         fileUpload.addClass('collapse');
     } else {
-        fileUpload.toggleClass('collapse');
+        fileUpload.removeClass('collapse');
         contactTextBox.addClass('collapse');
      }        
   });

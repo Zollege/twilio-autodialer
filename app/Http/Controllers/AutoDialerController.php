@@ -135,6 +135,45 @@ class AutoDialerController extends Controller
         return view('autodialer.bulk.show', compact('cdrs', 'bulk'));
     }
 
+    private function validateTextContacts(String $contactStr) {
+        $contactErrors = [];
+        $validContacts = [];
+        $contactArr = [];
+
+        if (!strpos($contactStr,PHP_EOL) && !strpos($contactStr, ",")) {
+          return redirect()->back()->with('danger', 'Contact entry invalid format. Please enter contact phone numbers in a single column or comma delimited rows');
+        }
+        else if (strpos($contactStr, ",")) { 
+            $contactArr = explode(",", $contactStr);
+        } 
+        else if (strpos($contactStr, PHP_EOL)) {
+            $contactArr = explode(PHP_EOL, $contactStr);
+        }
+        
+        if (!count($contactArr)) {
+          return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
+        }
+      
+        foreach ($contactArr as &$contact) {
+            $contact = preg_replace("/[^0-9]/", '', $contact);
+            if (strlen($contact) != 10 && !empty($contact)) {
+                array_push($contactErrors, $contact);
+            }
+            else if (strlen($contact) == 10) {
+                array_push($validContacts, $contact);
+            }
+        }
+        
+        if (!count($validContacts)) {
+          return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
+        }
+        
+        return [
+          'contacts' => $validContacts,
+          'errors' => $contactErrors
+        ];
+    }
+
     /**
      *  Process AutoDialer Bulk Call Request
      *
@@ -153,24 +192,32 @@ class AutoDialerController extends Controller
             'caller_id' => 'required',
         ]);
 
-        if ($request->contact_input == "text") {
+        //--------------------------- helpers ------------------------------
+        
+        $contactInput = $request->contact_input;
+        $csv = $request->file('csv_contacts');
 
-            dd($request->text_contacts);
+        //------------------------- text logic -----------------------------    
 
-        } else {
-          dd($request->file('csv_contacts'));
-            
-             //|| ($request->file('file')->getClientMimeType() != "text/csv" && $request->file('file')->getClientOriginalExtension() != "csv")) {
+        if ($contactInput == 'text' && !empty($request->text_contacts)) {
+          $validated = $this->validateTextContacts($request->text_contacts);
+          dd($validated);
+        } 
 
-            //return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
+        //------------------------- csv logic -----------------------------    
+
+        if (!$csv || ($csv->getClientMimeType() != "text/csv" && $csv->getClientOriginalExtension() != "csv")) {
+            return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
         }
 
         // Store the file
         $fileName = Carbon::now()->timestamp . '.csv';
         
-        $request->file('file')->storeAs(
-            'bulkfiles', $fileName , 'public'
-        );
+        if ($contactInput === 'csv') {
+            $request->file('csv_contacts')->storeAs(
+                'bulkfiles', $fileName , 'public'
+            );
+        }
 
         // Create the Bulk File record
         $bulkFile = BulkFile::create([
@@ -208,6 +255,7 @@ class AutoDialerController extends Controller
         foreach($csvFile as $row) {
             $callRequests[] = $row;
         }
+        dd($callRequests);
 
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
