@@ -24,7 +24,6 @@ class AutoDialerController extends Controller
 
     public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
-      \Log::info('hubspot constructor called');
       $this->hubspot = $hubspot;
     }
 
@@ -149,7 +148,6 @@ class AutoDialerController extends Controller
         else if (strpos($contactStr, PHP_EOL)) {
             $contactArr = explode(PHP_EOL, $contactStr);
         }
-        
         if (!count($contactArr)) {
           return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
         }
@@ -165,7 +163,7 @@ class AutoDialerController extends Controller
         }
         
         if (!count($validContacts)) {
-          return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
+            return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
         }
         
         return [
@@ -191,33 +189,32 @@ class AutoDialerController extends Controller
             'type' => 'required',
             'caller_id' => 'required',
         ]);
-
+    
         //--------------------------- helpers ------------------------------
         
         $contactInput = $request->contact_input;
         $csv = $request->file('csv_contacts');
-
-        //------------------------- text logic -----------------------------    
+        $fileName = Carbon::now()->timestamp . '.csv';
+        $fileNameAndPath = storage_path() . '/app/public/bulkfiles/' . $fileName;
+          
+        //------------------------- text contacts logic -----------------------------    
 
         if ($contactInput == 'text' && !empty($request->text_contacts)) {
-          $validated = $this->validateTextContacts($request->text_contacts);
-          dd($validated);
-        } 
-
-        //------------------------- csv logic -----------------------------    
-
-        if (!$csv || ($csv->getClientMimeType() != "text/csv" && $csv->getClientOriginalExtension() != "csv")) {
-            return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
+            $validated = $this->validateTextContacts($request->text_contacts);
+            $csvFile = new CsvFile($fileNameAndPath);;
+            foreach ($validated['contacts'] as $row) {
+                $row = Array(intval($row));
+                $csvFile->writeRow($row);
+            }
         }
-
-        // Store the file
-        $fileName = Carbon::now()->timestamp . '.csv';
-        
-        if ($contactInput === 'csv') {
-            $request->file('csv_contacts')->storeAs(
-                'bulkfiles', $fileName , 'public'
-            );
-        }
+    
+        //------------------------- csv contacts logic -----------------------------    
+        if ($contactInput == 'csv' && $csv) {
+            if ($csv->getClientMimeType() != "text/csv" && $csv->getClientOriginalExtension() != "csv") {
+                return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
+            } 
+            $csv->storeAs('bulkfiles', $fileName , 'public');
+        }     
 
         // Create the Bulk File record
         $bulkFile = BulkFile::create([
@@ -234,11 +231,10 @@ class AutoDialerController extends Controller
         } else {
             $say = $request->say;
         }
-
         $type = $request->type;
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
-        $fileNameAndPath = storage_path() . '/app/public/bulkfiles/' . $fileName;
 
+        //------------------------- count columns -----------------------------    
         // Create a new Symfony Process to count lines in the bulk file
         \Log::info('Create Bulk Process - about to count rows in this file: ', ["wc -l $fileNameAndPath | awk '{print $1}'"]);
         $process = new Process("wc -l $fileNameAndPath | awk '{print $1}'");
@@ -246,28 +242,30 @@ class AutoDialerController extends Controller
         $res = trim($process->getOutput());
         \Log::info('Create Bulk Process - After grep we found: ', [$res]);
 
+        //------------------------- chunk work -----------------------------    
         $chunkAmt = floor($res / 4);
         \Log::info('Create Bulk Process - Setting chunk amount to: ', [$chunkAmt]);
 
         // Move the CSV rows to an array
-        $csvFile = new CsvFile($fileNameAndPath);;
         $callRequests = [];
+        $csvFile = new CsvFile($fileNameAndPath);;
         foreach($csvFile as $row) {
             $callRequests[] = $row;
         }
-        dd($callRequests);
 
+        //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
             foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
             }
-        } else {
+        } 
+        else {
             $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
         }
-
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');
     }
+    
 
     /**
      *  Destroy AutoDialer Bulk File and CDR's

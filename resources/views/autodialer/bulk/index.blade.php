@@ -80,7 +80,7 @@
                                           class="form-control selectpicker contact_input">
                                               <option value="" disabled hidden selected>Please select a contact input method.</option>
                                               <option value="text">Text Box</option>
-                                              <option value="file">Upload CSV</option>
+                                              <option value="csv">Upload CSV</option>
                                         </select>
                                         @if ($errors->has('contact_input'))
                                             <span class="help-block">
