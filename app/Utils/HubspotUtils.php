@@ -59,8 +59,7 @@ class HubspotUtils
         $associations = [
           'contactIds' => $vids
         ];
-        $engagements = $this->hubspot->engagements()->create($engagement, $associations, $metadata);
-        dd($engagements);
+        return $engagements = $this->hubspot->engagements()->create($engagement, $associations, $metadata);
     }
 
     private function buildNoteBody($callerId, $type, $message) 

@@ -9,6 +9,7 @@ use App\Models\LogFile;
 use App\Models\BulkFile;
 use Keboola\Csv\CsvFile;
 use App\Models\AudioMessage;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Jobs\TwilioBulkCallJob;
 use App\Jobs\PlaceTwilioCallJob;
@@ -20,11 +21,12 @@ use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class AutoDialerController extends Controller
 {
-    protected $hubspot;
+    protected $hubspotUtils;
 
     public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
-      $this->hubspot = $hubspot;
+      
+        $this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
     }
 
     /**
@@ -100,8 +102,7 @@ class AutoDialerController extends Controller
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
         } else {
-            $hubspotUtils = new \App\Utils\HubspotUtils($this->hubspot);
-            $hubspotUtils->createNote([$number], $callerId, $type, $say);
+            $this->hubspotUtils->createNote([$number], $callerId, $type, $say);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');
@@ -253,14 +254,19 @@ class AutoDialerController extends Controller
             $callRequests[] = $row;
         }
 
+
         //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
             foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
+                $flatChunk = Arr::flatten($chunk);
+                $this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
             }
         } 
         else {
+            $flatCallRequests = Arr::flatten($callRequests);
+            $this->hubspotUtils->createNote($flatCallRequests, $callerId, $type, $say);
             $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
         }
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');
