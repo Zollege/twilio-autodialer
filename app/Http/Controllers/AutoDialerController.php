@@ -94,10 +94,10 @@ class AutoDialerController extends Controller
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
 
         $call = true;
-        //$call = (new PlaceTwilioCallService(
-            //[$number,$say,$type, $callerId],
-            //\Auth::user()->id
-        //))->call();
+        $call = (new PlaceTwilioCallService(
+            [$number,$say,$type, $callerId],
+            \Auth::user()->id
+        ))->call();
 
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
@@ -139,20 +139,24 @@ class AutoDialerController extends Controller
         $contactErrors = [];
         $validContacts = [];
         $contactArr = [];
+        $contactStr = str_replace(' ', '', $contactStr);
 
         if (!strpos($contactStr,PHP_EOL) && !strpos($contactStr, ",")) {
-          return redirect()->back()->with('danger', 'Contact entry invalid format. Please enter contact phone numbers in a single column or comma delimited rows');
+            array_push($contactErrors,'Contact entry invalid format. Please enter MULTIPLE contact phone numbers in a single column or comma delimited rows');
         }
         else if (strpos($contactStr, ",")) { 
+            $contactStr . ",";
             $contactArr = explode(",", $contactStr);
         } 
         else if (strpos($contactStr, PHP_EOL)) {
+            $contactStr . "\n";
             $contactArr = explode(PHP_EOL, $contactStr);
         }
+
         if (!count($contactArr)) {
-          return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
+            array_push($contactErrors, 'Contact entry invalid:  Did not contain any valid phone numbers.');
         }
-      
+
         foreach ($contactArr as &$contact) {
             $contact = preg_replace("/[^0-9]/", '', $contact);
             if (strlen($contact) != 10 && !empty($contact)) {
@@ -162,11 +166,7 @@ class AutoDialerController extends Controller
                 array_push($validContacts, $contact);
             }
         }
-        
-        if (!count($validContacts)) {
-            return redirect()->back()->with('danger', 'Contact entry invalid:  Did not contain any valid phone numbers.');
-        }
-        
+
         return [
           'contacts' => $validContacts,
           'errors' => $contactErrors
@@ -202,7 +202,11 @@ class AutoDialerController extends Controller
 
         if ($contactInput == 'text' && !empty($request->text_contacts)) {
             $validated = $this->validateTextContacts($request->text_contacts);
-            $csvFile = new CsvFile($fileNameAndPath);;
+            //dd($validated);
+            if (!empty($validated['errors'])) {
+              return redirect()->back()->with('danger', implode("\n", $validated['errors'])); 
+            }
+            $csvFile = new CsvFile($fileNameAndPath);
             foreach ($validated['contacts'] as $row) {
                 $row = Array(intval($row));
                 $csvFile->writeRow($row);
@@ -253,7 +257,6 @@ class AutoDialerController extends Controller
         foreach($csvFile as $row) {
             $callRequests[] = $row;
         }
-
 
         //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
