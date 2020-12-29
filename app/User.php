@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\BulkFile;
 use App\Models\AudioMessage;
 use App\Models\VerifiedPhoneNumber;
+use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
@@ -14,7 +15,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use Notifiable, EntrustUserTrait;
+    use HasApiTokens, Notifiable, EntrustUserTrait;
 
     /**
      * The attributes that are mass assignable.
