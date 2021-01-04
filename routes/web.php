@@ -48,13 +48,14 @@ Route::group(['middleware' => ['auth', 'impersonate']], function() {
             Route::resource('cdrs', 'CdrsController');
             Route::get('callerid', ['as'   => 'autodialer.callerid', 'uses' => 'AutoDialerController@callerid']);
         });
+        
+        Route::post('hubspot/{phonenumber}', ['as'   => 'hubspot.createNote', 'uses' => 'HubspotController@createNote']);
 
         // Audio Messages Routes
         Route::resource('audio-messages', 'AudioMessagesController');
 
     });
 });
-
 // Social Login callbacks and redirects
 Route::get('/redirect/{provider}', 'SocialAuthController@redirect');
 Route::get('/callback/{provider}', 'SocialAuthController@callback');

@@ -9,15 +9,26 @@ use App\Models\LogFile;
 use App\Models\BulkFile;
 use Keboola\Csv\CsvFile;
 use App\Models\AudioMessage;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Jobs\TwilioBulkCallJob;
 use App\Jobs\PlaceTwilioCallJob;
 use App\Models\VerifiedPhoneNumber;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
+use App\Utils\HuspotUtils;
+use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class AutoDialerController extends Controller
 {
+    protected $hubspotUtils;
+
+    public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
+    {
+      
+        $this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
+    }
+
     /**
      *  Show the AutoDialer index page
      *
@@ -58,6 +69,8 @@ class AutoDialerController extends Controller
      */
     public function placeCall(Request $request)
     {
+        //dd($this->hubspot);
+
         // Validate the form input
         $this->validate($request, [
             'number' => 'required',
@@ -79,9 +92,8 @@ class AutoDialerController extends Controller
         }
         $type = $request->type;
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
-        //$callerId = $request->caller_id;
-        \Log::info('callerId: '. $callerId); 
 
+        $call = true;
         $call = (new PlaceTwilioCallService(
             [$number,$say,$type, $callerId],
             \Auth::user()->id
@@ -89,6 +101,8 @@ class AutoDialerController extends Controller
 
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
+        } else {
+            $this->hubspotUtils->createNote([$number], $callerId, $type, $say);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');
@@ -121,6 +135,44 @@ class AutoDialerController extends Controller
         return view('autodialer.bulk.show', compact('cdrs', 'bulk'));
     }
 
+    private function validateTextContacts(String $contactStr) {
+        $contactErrors = [];
+        $validContacts = [];
+        $contactArr = [];
+        $contactStr = str_replace(' ', '', $contactStr);
+
+        if (!strpos($contactStr,PHP_EOL) && !strpos($contactStr, ",")) {
+            array_push($contactErrors,'Contact entry invalid format. Please enter MULTIPLE contact phone numbers in a single column or comma delimited rows');
+        }
+        else if (strpos($contactStr, ",")) { 
+            $contactStr . ",";
+            $contactArr = explode(",", $contactStr);
+        } 
+        else if (strpos($contactStr, PHP_EOL)) {
+            $contactStr . "\n";
+            $contactArr = explode(PHP_EOL, $contactStr);
+        }
+
+        if (!count($contactArr)) {
+            array_push($contactErrors, 'Contact entry invalid:  Did not contain any valid phone numbers.');
+        }
+
+        foreach ($contactArr as &$contact) {
+            $contact = preg_replace("/[^0-9]/", '', $contact);
+            if (strlen($contact) != 10 && !empty($contact)) {
+                array_push($contactErrors, $contact);
+            }
+            else if (strlen($contact) == 10) {
+                array_push($validContacts, $contact);
+            }
+        }
+
+        return [
+          'contacts' => $validContacts,
+          'errors' => $contactErrors
+        ];
+    }
+
     /**
      *  Process AutoDialer Bulk Call Request
      *
@@ -129,25 +181,45 @@ class AutoDialerController extends Controller
      */
     public function bulkStore(Request $request)
     {
-        \Log::info('bulkStore request: '. $request);
         // Validate the form input
         $this->validate($request, [
-            'file' => 'required',
+            'contact_input' => 'required',
+            'text_contacts' => 'nullable|required_without:csv_contacts',
+            'csv_contacts' => 'nullable|required_without:text_contacts',
             'say' => 'required',
             'type' => 'required',
             'caller_id' => 'required',
         ]);
-
-        if (!$request->file('file')|| ($request->file('file')->getClientMimeType() != "text/csv" && $request->file('file')->getClientOriginalExtension() != "csv"))
-        {
-            return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
-        }
-
-        // Store the file
+    
+        //--------------------------- helpers ------------------------------
+        
+        $contactInput = $request->contact_input;
+        $csv = $request->file('csv_contacts');
         $fileName = Carbon::now()->timestamp . '.csv';
-        $request->file('file')->storeAs(
-            'bulkfiles', $fileName , 'public'
-        );
+        $fileNameAndPath = storage_path() . '/app/public/bulkfiles/' . $fileName;
+          
+        //------------------------- text contacts logic -----------------------------    
+
+        if ($contactInput == 'text' && !empty($request->text_contacts)) {
+            $validated = $this->validateTextContacts($request->text_contacts);
+            //dd($validated);
+            if (!empty($validated['errors'])) {
+              return redirect()->back()->with('danger', implode("\n", $validated['errors'])); 
+            }
+            $csvFile = new CsvFile($fileNameAndPath);
+            foreach ($validated['contacts'] as $row) {
+                $row = Array(intval($row));
+                $csvFile->writeRow($row);
+            }
+        }
+    
+        //------------------------- csv contacts logic -----------------------------    
+        if ($contactInput == 'csv' && $csv) {
+            if ($csv->getClientMimeType() != "text/csv" && $csv->getClientOriginalExtension() != "csv") {
+                return redirect()->back()->with('danger', 'File type invalid.  Please use a CSV file format.');
+            } 
+            $csv->storeAs('bulkfiles', $fileName , 'public');
+        }     
 
         // Create the Bulk File record
         $bulkFile = BulkFile::create([
@@ -164,11 +236,10 @@ class AutoDialerController extends Controller
         } else {
             $say = $request->say;
         }
-
         $type = $request->type;
         $callerId = VerifiedPhoneNumber::find($request->caller_id)->phone_number;
-        $fileNameAndPath = storage_path() . '/app/public/bulkfiles/' . $fileName;
 
+        //------------------------- count columns -----------------------------    
         // Create a new Symfony Process to count lines in the bulk file
         \Log::info('Create Bulk Process - about to count rows in this file: ', ["wc -l $fileNameAndPath | awk '{print $1}'"]);
         $process = new Process("wc -l $fileNameAndPath | awk '{print $1}'");
@@ -176,27 +247,34 @@ class AutoDialerController extends Controller
         $res = trim($process->getOutput());
         \Log::info('Create Bulk Process - After grep we found: ', [$res]);
 
+        //------------------------- chunk work -----------------------------    
         $chunkAmt = floor($res / 4);
         \Log::info('Create Bulk Process - Setting chunk amount to: ', [$chunkAmt]);
 
         // Move the CSV rows to an array
-        $csvFile = new CsvFile($fileNameAndPath);;
         $callRequests = [];
+        $csvFile = new CsvFile($fileNameAndPath);;
         foreach($csvFile as $row) {
             $callRequests[] = $row;
         }
 
+        //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
             foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
+                $flatChunk = Arr::flatten($chunk);
+                $this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
             }
-        } else {
+        } 
+        else {
+            $flatCallRequests = Arr::flatten($callRequests);
+            $this->hubspotUtils->createNote($flatCallRequests, $callerId, $type, $say);
             $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
         }
-
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');
     }
+    
 
     /**
      *  Destroy AutoDialer Bulk File and CDR's

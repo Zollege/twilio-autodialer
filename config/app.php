@@ -172,6 +172,7 @@ return [
         Collective\Html\HtmlServiceProvider::class,
         Zizaco\Entrust\EntrustServiceProvider::class,
         Sofa\Eloquence\BaseServiceProvider::class,
+        Rossjcooper\LaravelHubSpot\HubSpotServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -235,7 +236,7 @@ return [
         'Form'      => Collective\Html\FormFacade::class,
         'HTML'      => Collective\Html\HtmlFacade::class,
         'Entrust'   => Zizaco\Entrust\EntrustFacade::class,
-
+        'HubSpot' => Rossjcooper\LaravelHubSpot\Facades\HubSpot::class
     ],
 
 ];
