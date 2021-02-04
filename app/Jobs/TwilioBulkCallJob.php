@@ -62,6 +62,8 @@ class TwilioBulkCallJob implements ShouldQueue
         $this->callerId = $callerId;
         $this->user = $user;
         $this->bulkFile = $bulkFile;
+        
+        //dd($this);
     }
 
     /**

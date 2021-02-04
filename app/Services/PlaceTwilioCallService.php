@@ -8,6 +8,7 @@ use Twilio\Rest\Client as Twilio;
 use Illuminate\Support\Facades\Log;
 use Twilio\Exceptions\RestException;
 use App\Models\VerifiedPhoneNumber;
+use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class PlaceTwilioCallService
 {
@@ -136,6 +137,8 @@ class PlaceTwilioCallService
                 $cdr->save();
                 return false;
             }
+            $hubspotUtils =  new \App\Utils\HubspotUtils();
+            $hubspotUtils->logOutboundToHubspot($dialedNumber, $callerId, $type, $say);
 
             $cdr->successful = true;
             $cdr->save();

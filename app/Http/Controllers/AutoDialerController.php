@@ -262,14 +262,13 @@ class AutoDialerController extends Controller
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
             foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
-                $flatChunk = Arr::flatten($chunk);
-                $this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
+                //$flatChunk = Arr::flatten($chunk);
+                //$this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
             }
         } 
         else {
-            $flatCallRequests = Arr::flatten($callRequests);
-            $this->hubspotUtils->createNote($flatCallRequests, $callerId, $type, $say);
+            //$flatCallRequests = Arr::flatten($callRequests);
             $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
         }
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');
