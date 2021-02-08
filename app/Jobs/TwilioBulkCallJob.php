@@ -11,6 +11,8 @@ use App\Services\PlaceTwilioCallService;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use \Rossjcooper\LaravelHubSpot\HubSpot;
+use App\Utils\HuspotUtils;
 
 class TwilioBulkCallJob implements ShouldQueue
 {
@@ -53,6 +55,7 @@ class TwilioBulkCallJob implements ShouldQueue
      * @param $callerId
      * @param User $user
      * @param BulkFile $bulkFile
+     * @param Hubspot Utils $hubspotUtils
      */
     public function __construct($chunk, $say, $type, $callerId, User $user, BulkFile $bulkFile)
     {
@@ -71,8 +74,11 @@ class TwilioBulkCallJob implements ShouldQueue
      *
      * @return void
      */
-    public function handle()
+    public function handle(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
+        
+        $hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
+
         $iteration = rand();
         foreach($this->chunk as $row) {
             \Log::debug('Bulk Dialer - Processing row', [$iteration, $row]);
@@ -82,6 +88,9 @@ class TwilioBulkCallJob implements ShouldQueue
                 $this->user->id,
                 $this->bulkFile->id
             ))->call();
+
+            //\Log::info("hubspotUtils from inside job: ".var_dump($hubspotUtils->logOutboundToHubspot));
+            //$this->hubspotUtils->logOutboundToHubspot($number, $this->callerId, $this->type, $this->say);
             sleep(1);
         }
         $this->bulkFile->status = 'Completed';

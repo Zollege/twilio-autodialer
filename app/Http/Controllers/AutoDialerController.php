@@ -17,7 +17,6 @@ use App\Models\VerifiedPhoneNumber;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
 use App\Utils\HuspotUtils;
-use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class AutoDialerController extends Controller
 {
@@ -26,7 +25,7 @@ class AutoDialerController extends Controller
     public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
       
-        $this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
+        //$this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
     }
 
     /**
@@ -262,13 +261,10 @@ class AutoDialerController extends Controller
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
         if($chunkAmt) {
             foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
-                //$flatChunk = Arr::flatten($chunk);
-                //$this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
             }
         } 
         else {
-            //$flatCallRequests = Arr::flatten($callRequests);
             $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
         }
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');

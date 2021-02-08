@@ -16,6 +16,9 @@ class HubspotUtils
     
     private function verifyOrCreateContact($phonenumber)
     { 
+    
+      \Log::info("verifyOrCreateContact called");
+
       // Given a phone number, check that it exists as a valid hubspot contact.
       // Any phone number which is not registered is saved to Hubspot as new contact. 
       $contactVid = null;
@@ -39,6 +42,7 @@ class HubspotUtils
 
     public function logOutboundToHubspot(String $phonenumber, String $callerId, String $type, String $message)
     {
+        \Log::info("logOutboundToHubspot called");
         $vid = $this->verifyOrCreateContact($phonenumber);
         $body = $this->buildNoteBody($callerId, $type, $message);
 
@@ -51,7 +55,7 @@ class HubspotUtils
           'body' => $body 
         ];
         $associations = [
-          'ContactIds' => [$vid]
+          'contactIds' => [$vid]
         ];
         
         return $this->hubspot->engagements()->create($engagement, $associations, $metadata);
