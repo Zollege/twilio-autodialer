@@ -17,7 +17,7 @@ class HubspotUtils
     private function verifyOrCreateContact($phonenumber)
     { 
     
-      \Log::info("verifyOrCreateContact called");
+      //\Log::info("verifyOrCreateContact called");
 
       // Given a phone number, check that it exists as a valid hubspot contact.
       // Any phone number which is not registered is saved to Hubspot as new contact. 
@@ -27,24 +27,28 @@ class HubspotUtils
         $properties = [
           "properties" => [
             "property" => "phone",
-            "value" => $number
+            "value" => $phonenumber
           ]
         ];
         $newContact = $this->hubspot->contacts()->create($properties);
         $contactVid = $newContact->vid;
-        \Log::info("New Contact Created in Hubspot. phone number: $newContact->phone \t vid: $contactVid");
+        \Log::info("New Contact Created in Hubspot. phone number: $phonenumber \t vid: $contactVid");
       } else {
-        $contactVid = $contacts->data->contacts[0]->vid;
-        \Log::info("Found Contact in Hubspot. Phone Number: $phonenumber \t Vid: $result");
+        $contactVid = $contactExists->data->contacts[0]->vid;
+        \Log::info("Found Contact in Hubspot. Phone Number: $phonenumber \t Vid: $contactVid");
       }
       return $contactVid;
     }
 
-    public function logOutboundToHubspot(String $phonenumber, String $callerId, String $type, String $message)
+    public function logOutboundToHubspot(String $phonenumber, String $message, String $type, String $callerId)
     {
-        \Log::info("logOutboundToHubspot called");
+        //\Log::info("logOutboundToHubspot Arguments: \t Phone Number: $phonenumber \t Message: $message \t Type: $type \t CallerId: $callerId");
+        
         $vid = $this->verifyOrCreateContact($phonenumber);
+        //\Log::info("logOutboundToHubspot Vid: $vid");
+        //return;
         $body = $this->buildNoteBody($callerId, $type, $message);
+
 
         $engagement = [
           'type' => 'NOTE',

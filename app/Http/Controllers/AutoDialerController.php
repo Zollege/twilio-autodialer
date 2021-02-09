@@ -24,8 +24,7 @@ class AutoDialerController extends Controller
 
     public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
-      
-        //$this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
+        $this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
     }
 
     /**
@@ -101,7 +100,7 @@ class AutoDialerController extends Controller
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
         } else {
-            $this->hubspotUtils->createNote([$number], $callerId, $type, $say);
+            $this->hubspotUtils->logOutboundToHubspot($number, $say, $type, $callerId);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');

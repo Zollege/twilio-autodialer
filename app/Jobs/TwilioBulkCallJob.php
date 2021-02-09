@@ -89,8 +89,7 @@ class TwilioBulkCallJob implements ShouldQueue
                 $this->bulkFile->id
             ))->call();
 
-            //\Log::info("hubspotUtils from inside job: ".var_dump($hubspotUtils->logOutboundToHubspot));
-            //$this->hubspotUtils->logOutboundToHubspot($number, $this->callerId, $this->type, $this->say);
+            $hubspotUtils->logOutboundToHubspot($number, $this->say, $this->type, $this->callerId);
             sleep(1);
         }
         $this->bulkFile->status = 'Completed';
