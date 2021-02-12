@@ -52,7 +52,7 @@ class TwilioBulkCallJob implements ShouldQueue
     private $bulkTitle;
 
 
-    public $timeout = 120;
+    public $timeout = 300;
 
     /**
      * Create a new job instance.
@@ -87,11 +87,13 @@ class TwilioBulkCallJob implements ShouldQueue
         
         $hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
         $iteration = rand();
+        $chunkLength = count($this->chunk);
+        \Log::info("job received chunk length: $chunkLength");
         foreach($this->chunk as $row) {
-            \Log::info('Bulk Dialer - Processing row', [$this->bulkTitle, $row]);
             $number = substr($row, -10);
-            \Log::info("number: $number");
-            \Log::info("row: $row");
+            //\Log::info("number: $number");
+            \Log::info('Bulk Dialer - Processing number', [$this->bulkTitle, $number]);
+            //\Log::info("row: $row");
             (new PlaceTwilioCallService(
                 [$number,$this->say, $this->type, $this->callerId],
                 $this->user->id,

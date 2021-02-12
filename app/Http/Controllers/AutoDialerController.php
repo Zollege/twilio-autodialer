@@ -271,9 +271,9 @@ class AutoDialerController extends Controller
         //$execTime = $execEnd - $execStart;
         $crLength = count($uniqueCallRequests);
 
-        //\Log::info('Total call requests:', [$crLength]); 
+        \Log::info('Total call requests:', [$crLength]); 
         //\Log::info("Unique call requests:", [$uniqueCallRequests]); 
-        \Log::info("Unique call requests count:", [$crLength]); 
+        //\Log::info("Unique call requests count:", [$crLength]); 
         //\Log::info("Dedupe exectime:", [$execTime]); 
 
         //dd($execTime);
@@ -282,13 +282,14 @@ class AutoDialerController extends Controller
 
         //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
-        if($crLength > 10) {
-            foreach(array_chunk($uniqueCallRequests, 10) as $chunk) {
-
+        if($crLength > 4) {
+            //foreach(array_chunk($uniqueCallRequests, 10) as $chunk) {
+            foreach(array_chunk($uniqueCallRequests, 4) as $chunk) {
                 $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
             }
         } 
         else {
+            //$this->dispatch(new TwilioBulkCallJob($uniqueCallRequests, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
             $this->dispatch(new TwilioBulkCallJob($uniqueCallRequests, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
         }
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');

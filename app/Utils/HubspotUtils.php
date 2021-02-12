@@ -32,10 +32,10 @@ class HubspotUtils
         ];
         $newContact = $this->hubspot->contacts()->create($properties);
         $contactVid = $newContact->vid;
-        \Log::info("New Contact Created in Hubspot. phone number: $phonenumber \t vid: $contactVid");
+        //\Log::info("New Contact Created in Hubspot. phone number: $phonenumber \t vid: $contactVid");
       } else {
         $contactVid = $contactExists->data->contacts[0]->vid;
-        \Log::info("Found Contact in Hubspot. Phone Number: $phonenumber \t Vid: $contactVid");
+        //\Log::info("Found Contact in Hubspot. Phone Number: $phonenumber \t Vid: $contactVid");
       }
       return $contactVid;
     }
