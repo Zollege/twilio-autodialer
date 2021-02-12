@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cdr extends Model
 {
-    protected $fillable = ['dialednumber', 'callerid', 'calltype','message','successful', 'user_id', 'failurereason'];
+    protected $fillable = ['dialednumber', 'callerid', 'calltype','message','successful', 'user_id', 'failurereason', 'bulktitle'];
 
     /**
      *  A CDR Belongs To a User

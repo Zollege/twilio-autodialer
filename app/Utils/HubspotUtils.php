@@ -68,7 +68,7 @@ class HubspotUtils
     private function buildNoteBody($callerId, $type, $message) 
     {
       //This function returns a string which will be passed to the metadata key
-      return "Twilio sent an automated $type message. ".
+      return "Autodialer sent an automated $type message. ".
              "Date: ".date('l jS \of F Y h:i:s A').". ".
              "From: $callerId. ".
              "Message: ".$message;

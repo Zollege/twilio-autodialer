@@ -46,6 +46,13 @@ class TwilioBulkCallJob implements ShouldQueue
      * @var BulkFile
      */
     private $bulkFile;
+    /**
+     * @var 
+     */
+    private $bulkTitle;
+
+
+    public $timeout = 120;
 
     /**
      * Create a new job instance.
@@ -55,9 +62,9 @@ class TwilioBulkCallJob implements ShouldQueue
      * @param $callerId
      * @param User $user
      * @param BulkFile $bulkFile
-     * @param Hubspot Utils $hubspotUtils
+     * @param $bulkTitle 
      */
-    public function __construct($chunk, $say, $type, $callerId, User $user, BulkFile $bulkFile)
+    public function __construct($chunk, $say, $type, $callerId, User $user, BulkFile $bulkFile, $bulkTitle)
     {
         $this->chunk = $chunk;
         $this->say = $say;
@@ -65,28 +72,31 @@ class TwilioBulkCallJob implements ShouldQueue
         $this->callerId = $callerId;
         $this->user = $user;
         $this->bulkFile = $bulkFile;
-        
+        $this->bulkTitle = $bulkTitle;
         //dd($this);
     }
 
-    /**
+    /*
      * Execute the job.
      *
      * @return void
      */
     public function handle(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
+        $execStart = microtime(true);    
         
         $hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
-
         $iteration = rand();
         foreach($this->chunk as $row) {
-            \Log::debug('Bulk Dialer - Processing row', [$iteration, $row]);
-            $number = substr($row[0], -10);
+            \Log::info('Bulk Dialer - Processing row', [$this->bulkTitle, $row]);
+            $number = substr($row, -10);
+            \Log::info("number: $number");
+            \Log::info("row: $row");
             (new PlaceTwilioCallService(
                 [$number,$this->say, $this->type, $this->callerId],
                 $this->user->id,
-                $this->bulkFile->id
+                $this->bulkFile->id, 
+                $this->bulkTitle
             ))->call();
 
             $hubspotUtils->logOutboundToHubspot($number, $this->say, $this->type, $this->callerId);
@@ -94,6 +104,11 @@ class TwilioBulkCallJob implements ShouldQueue
         }
         $this->bulkFile->status = 'Completed';
         $this->bulkFile->save();
-//        event(new BulkProcessUpdated($this->bulkFile));
+        //event(new BulkProcessUpdated($this->bulkFile));
+        
+        $execEnd = microtime(true);
+        $execTime = $execEnd - $execStart;
+        \Log::info("Bulk Title: $this->bulkTitle, job iteration: $iteration took: $execTime seconds to execute");
+
     }
 }

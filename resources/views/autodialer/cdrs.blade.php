@@ -25,10 +25,11 @@
                                     <th>Dialed Number</th>
                                     <th>Caller ID</th>
                                     <th>Call Type</th>
+                                    <th>Bulk Message Title</th>
                                     {{--<th>Message</th>--}}
                                     <th>Result</th>
                                     <th>Fail Reason</th>
-                                    <th>Bulk File</th>
+                                    {{--<th>Bulk File</th>--}}
                                     <th>Timestamp</th>
                                 </tr>
                                 </thead>
@@ -39,10 +40,11 @@
                                             <td>{{$item->dialednumber}}</td>
                                             <td>{{$item->callerid}}</td>
                                             <td>{{$item->calltype}}</td>
+                                            <td>{{$item->bulk_title}}</td>
                                             {{--<td>{{$item->message}}</td>--}}
                                             <td>{{$item->successful ? 'Success' : 'Fail'}}</td>
                                             <td>{{$item->failurereason}}</td>
-                                            <td>{{$item->autoDialerBulkFile->file_name or ''}}</td>
+                                            {{--<td>{{$item->autoDialerBulkFile->file_name or ''}}</td>--}}
                                             <td>{{$item->created_at->format('m-d-Y H:i:s')}}</td>
                                         </tr>
                                     @endforeach

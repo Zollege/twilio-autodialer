@@ -51,6 +51,17 @@
                                             </span>
                                         @endif
                                     </div>
+
+                                    <div class="form-group{{ $errors->has('bulk_title') ? ' has-error' : '' }}">
+                                        {!! Form::label('bulk_title','Bulk Message Title') !!}
+                                        {!! Form::text('bulk_title', null, ['class' => 'form-control']) !!}
+                                        @if ($errors->has('bulk_title'))
+                                            <span class="help-block">
+                                                <strong>{{ $errors->first('bulk_title') }}</strong>
+                                            </span>
+                                        @endif
+                                    </div>
+
                                     <div class="form-group{{ $errors->has('say') ? ' has-error' : '' }}" v-if="selected === 'audio'">
                                         {!! Form::label('audio_file','Audio Messages') !!}
                                         {!! Form::select('say', $audioMessages, 'S', ['class' => 'selectpicker form-control', 'data-style' => 'btn-default btn-block']) !!}
@@ -61,6 +72,7 @@
                                         @endif
                                         {!! Form::hidden('audioMessage', true) !!}
                                     </div>
+
                                     <div class="form-group{{ $errors->has('say') ? ' has-error' : '' }}" v-else>
                                         {!! Form::label('What Should We Say?','What would you like to say?') !!}
                                         {!! Form::textarea('say', null, ['class' => 'form-control']) !!}
@@ -117,21 +129,22 @@
                                 </div>
                                 <div id="icon-info" class="tab-pane">
                                     <ul>
-                                        <li>
-                                            <p>
-                                                The Auto Dialer bulk interface accepts a csv formatted list of phone numbers to call, along with some other call data filled out in the form.
-                                            </p>
+                                        <li>The Auto Dialer bulk interface accepts a list of phone numbers in the following ways:</li>
+                                          <ul>
+                                              <li><strong>CSV File</strong>: a list of phone numbers formatted into a single column. </li>
+                                              <li><strong>Text Input</strong>: a list of phone numbers with each phone number separated by a comma OR a single column with each phone number on a new line.</li>
+                                          </ul>
                                         </li>
+                                        <hr/>
                                         <li>
-                                            <p>
-                                                All form data must be filled out, and a csv of phone numbers supplied:
+                                            <p>All form data must be filled out, and a csv of phone numbers supplied:</p>
                                             <ol>
                                                 <li>Select a caller ID to use from your Twilio account</li>
                                                 <li>Select whether the calls should be voice or text message</li>
+                                                <li>Enter a descriptive title to represent the group of outbound messages</li>
                                                 <li>Enter the text which will be sent via SMS or phone call</li>
                                                 <li>Supply a list of phone numbers to call.  Each call wil take the right-most 10 digits.</li>
                                             </ol>
-                                            </p>
                                         </li>
                                     </ul>
                                 </div>
@@ -158,7 +171,7 @@
                                 <table class="table table-hover table-striped">
                                     <thead>
                                     <tr>
-                                        <th>Filename</th>
+                                        <th>Bulk Message Title</th>
                                         <th>Submitted On</th>
                                         <th>Status</th>
                                         <th class="td-actions text-right" style="" data-field="actions"><div class="th-inner ">Actions</div><div class="fht-cell"></div></th>
@@ -171,7 +184,7 @@
                                         <tr>
                                             <td>
                                                 <a href="{{ url('/autodialer/bulk', ['id' => $item->id]) }}">
-                                                    {{ $item->file_name }}
+                                                    {{ $item->bulk_title}}
                                                 </a>
                                             </td>
                                             <td>{{ $item->created_at->toDateTimeString() }}</td>
