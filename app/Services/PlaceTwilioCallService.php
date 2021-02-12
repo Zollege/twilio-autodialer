@@ -24,6 +24,8 @@ class PlaceTwilioCallService
      */
     private $userId;
 
+    private $bulkTitle;
+
     /**
      * Create a new job instance.
      *
@@ -31,11 +33,12 @@ class PlaceTwilioCallService
      * @param $userId
      * @param null $bulkFileId
      */
-    public function __construct($call, $userId, $bulkFileId = null)
+    public function __construct($call, $userId, $bulkFileId = null, $bulkTitle = null)
     {
         $this->call = $call;
         $this->userId = $userId;
         $this->bulkFileId = $bulkFileId;
+        $this->bulkTitle = $bulkTitle;
     }
 
     /**
@@ -67,12 +70,35 @@ class PlaceTwilioCallService
         $say = $this->call[1];
         $type = $this->call[2];
         $callerId = $this->call[3];
+        
+        if (is_null($this->bulkTitle)) {
+            switch($type) {
+                case 'text'  :
+                    $bulkSingularTitle = 'Single Text Message';
+                    break;
+                case 'voice' :
+                    $bulkSingularTitle = 'Single Phone Call';
+                    break;
+                case 'audio' :
+                    $bulkSingularTitle = 'Single Audio Message';
+                    break;
+            }
 
+            \Log::info("place call service - singular title: $bulkSingularTitle");
 
+            $cdr->bulk_title = $bulkSingularTitle;
+
+        } else {
+
+            $cdr->bulk_title = $this->bulkTitle;
+
+        }
+            
         $cdr->dialednumber = $e164;
         $cdr->callerid = $callerId;
         $cdr->message = $say;
         $cdr->bulk_file_id = $this->bulkFileId;
+
 
         /*
          * Check that the dialed number is actually a number
@@ -136,6 +162,7 @@ class PlaceTwilioCallService
                 $cdr->save();
                 return false;
             }
+
 
             $cdr->successful = true;
             $cdr->save();

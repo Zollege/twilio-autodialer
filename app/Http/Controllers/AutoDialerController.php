@@ -17,7 +17,6 @@ use App\Models\VerifiedPhoneNumber;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Storage;
 use App\Utils\HuspotUtils;
-use \Rossjcooper\LaravelHubSpot\HubSpot;
 
 class AutoDialerController extends Controller
 {
@@ -25,7 +24,6 @@ class AutoDialerController extends Controller
 
     public function __construct(\Rossjcooper\LaravelHubSpot\HubSpot $hubspot)
     {
-      
         $this->hubspotUtils = new \App\Utils\HubspotUtils($hubspot);
     }
 
@@ -102,7 +100,7 @@ class AutoDialerController extends Controller
         if(!$call) {
             return redirect()->action('AutoDialerController@index')->with('danger', 'There was an error processing your call.  Please check the Call Detail Records.');
         } else {
-            $this->hubspotUtils->createNote([$number], $callerId, $type, $say);
+            $this->hubspotUtils->logOutboundToHubspot($number, $say, $type, $callerId);
         }
 
         return redirect()->action('AutoDialerController@index')->with('info', 'Twilio Call Submitted!  Check the call logs for status.');
@@ -189,10 +187,13 @@ class AutoDialerController extends Controller
             'say' => 'required',
             'type' => 'required',
             'caller_id' => 'required',
+            'bulk_title'=> 'required',
         ]);
+
+        //dd('request: '.$request->title);
     
         //--------------------------- helpers ------------------------------
-        
+        $bulkTitle = $request->bulk_title;
         $contactInput = $request->contact_input;
         $csv = $request->file('csv_contacts');
         $fileName = Carbon::now()->timestamp . '.csv';
@@ -202,7 +203,6 @@ class AutoDialerController extends Controller
 
         if ($contactInput == 'text' && !empty($request->text_contacts)) {
             $validated = $this->validateTextContacts($request->text_contacts);
-            //dd($validated);
             if (!empty($validated['errors'])) {
               return redirect()->back()->with('danger', implode("\n", $validated['errors'])); 
             }
@@ -221,9 +221,12 @@ class AutoDialerController extends Controller
             $csv->storeAs('bulkfiles', $fileName , 'public');
         }     
 
+        \Log::info("controller logging title: $bulkTitle");
+        //return;
         // Create the Bulk File record
         $bulkFile = BulkFile::create([
             'file_name' => $fileName,
+            'bulk_title' => $bulkTitle,
             'status' => 'Processing',
             'created_by' => \Auth::user()->id
         ]);
@@ -241,36 +244,53 @@ class AutoDialerController extends Controller
 
         //------------------------- count columns -----------------------------    
         // Create a new Symfony Process to count lines in the bulk file
-        \Log::info('Create Bulk Process - about to count rows in this file: ', ["wc -l $fileNameAndPath | awk '{print $1}'"]);
-        $process = new Process("wc -l $fileNameAndPath | awk '{print $1}'");
-        $process->run();
-        $res = trim($process->getOutput());
-        \Log::info('Create Bulk Process - After grep we found: ', [$res]);
+        //\Log::info('Create Bulk Process - about to count rows in this file: ', ["wc -l $fileNameAndPath | awk '{print $1}'"]);
+        //$process = new Process("wc -l $fileNameAndPath | awk '{print $1}'");
+        //$process->run();
+        //$res = trim($process->getOutput());
+        //\Log::info('Create Bulk Process - After grep we found: ', [$res]);
 
         //------------------------- chunk work -----------------------------    
-        $chunkAmt = floor($res / 4);
-        \Log::info('Create Bulk Process - Setting chunk amount to: ', [$chunkAmt]);
+        //$chunkAmt = floor($res / 30);
+        //\Log::info('Create Bulk Process - Setting chunk amount to: ', [$chunkAmt]);
 
         // Move the CSV rows to an array
         $callRequests = [];
+
         $csvFile = new CsvFile($fileNameAndPath);;
+
         foreach($csvFile as $row) {
             $callRequests[] = $row;
         }
 
+
+        //$execStart = microtime(true);
+        $flatCallRequests = array_flatten($callRequests);
+        $uniqueCallRequests = array_unique($flatCallRequests);
+        //$execEnd = microtime(true);
+        //$execTime = $execEnd - $execStart;
+        $crLength = count($uniqueCallRequests);
+
+        \Log::info('Total call requests:', [$crLength]); 
+        //\Log::info("Unique call requests:", [$uniqueCallRequests]); 
+        //\Log::info("Unique call requests count:", [$crLength]); 
+        //\Log::info("Dedupe exectime:", [$execTime]); 
+
+        //dd($execTime);
+
+
+
         //------------------------- queue work chunks  -----------------------------    
         // Dispatch Bulk Dialer Jobs.  If we have more than 4 rows, split them into chunks.
-        if($chunkAmt) {
-            foreach(array_chunk($callRequests, $chunkAmt) as $chunk) {
-                $flatChunk = Arr::flatten($chunk);
-                $this->hubspotUtils->createNote($flatChunk, $callerId, $type, $say);
-                $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile));
+        if($crLength > 4) {
+            //foreach(array_chunk($uniqueCallRequests, 10) as $chunk) {
+            foreach(array_chunk($uniqueCallRequests, 4) as $chunk) {
+                $this->dispatch(new TwilioBulkCallJob($chunk, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
             }
         } 
         else {
-            $flatCallRequests = Arr::flatten($callRequests);
-            $this->hubspotUtils->createNote($flatCallRequests, $callerId, $type, $say);
-            $this->dispatch(new TwilioBulkCallJob($callRequests, $say, $type, $callerId, \Auth::user(), $bulkFile));
+            //$this->dispatch(new TwilioBulkCallJob($uniqueCallRequests, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
+            $this->dispatch(new TwilioBulkCallJob($uniqueCallRequests, $say, $type, $callerId, \Auth::user(), $bulkFile, $bulkTitle));
         }
         return redirect()->back()->with('info', 'Bulk Job Submitted!  Check the call logs for status.');
     }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BulkFile extends Model
 {
-    protected $fillable = ['file_name', 'status', 'processed_file_name', 'created_by'];
+    protected $fillable = ['file_name', 'status', 'processed_file_name', 'created_by', 'bulk_title'];
 
     /**
      *  A BulkFile Belongs To a User
