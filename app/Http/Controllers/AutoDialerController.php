@@ -50,7 +50,7 @@ class AutoDialerController extends Controller
         if (empty($term)) {
           $vpns = VerifiedPhoneNumber::all();
         } else {
-          $vpns = VerifiedPhoneNumber::search($term)->limit(5)->get();
+          $vpns = VerifiedPhoneNumber::search($term)->get();
         } 
         $formatted_vpns = [];
 
