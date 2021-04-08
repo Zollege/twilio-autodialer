@@ -13,7 +13,7 @@ $(document).ready(function() {
         },
         processResults: function (data) {
             return {
-                results: data.sort((a, b) => a.text < b.text ? -1 : 1)
+                results: data
             };
         },
         cache: true
